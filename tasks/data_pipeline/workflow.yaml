@@ -2,30 +2,30 @@ main:
   params: [args]
   steps:
     - extract_opa_properties:
-        call: http.get
+        call: http.post
         args:
           url: ${"https://" + sys.get_env("GOOGLE_CLOUD_REGION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/extract-opa-properties"}
           auth:
             type: OIDC
     - prepare_opa_properties:
-        call: http.get
+        call: http.post
         args:
           url: ${"https://" + sys.get_env("GOOGLE_CLOUD_REGION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/prepare-opa-properties"}
           auth:
             type: OIDC
     - load_opa_properties_source:
-        call: http.get
+        call: http.post
         args:
-          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_REGION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/load-opa-properties"}
-          query:
+          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_REGION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+          data:
             sql: source/opa_properties.sql
           auth:
             type: OIDC
     - load_opa_properties_core:
-        call: http.get
+        call: http.post
         args:
-          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_REGION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/load-opa-properties"}
-          query:
+          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_REGION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+          data:
             sql: core/opa_properties.sql
           auth:
             type: OIDC

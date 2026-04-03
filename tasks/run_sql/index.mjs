@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 
 import functions from '@google-cloud/functions-framework';
 import { BigQuery } from '@google-cloud/bigquery';
+import Mustache from 'mustache';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SQL_DIR_NAME = path.join(__dirname, 'sql');
@@ -41,31 +42,13 @@ functions.http('run_sql', async (req, res) => {
     dataset_name: process.env.DATA_LAKE_DATASET || 'source',
   };
 
-  const sqlQuery = renderTemplate(sqlQueryTemplate, context);
+  const sqlQuery = Mustache.render(sqlQueryTemplate, context);
 
   // Run the query
   const bigqueryClient = new BigQuery();
-  try {
-      await bigqueryClient.query({
-          query: sqlQuery
-      });
-      console.log(`Ran the SQL file ${sqlPath}`);
-      res.send(`Ran the SQL file ${sqlPath}`);
-  } catch (err) {
-      console.error(err);
-      res.status(500).send(`Failed to run SQL: ${err.message}`);
-  }
+  await bigqueryClient.query({
+      query: sqlQuery
+  });
+  console.log(`Ran the SQL file ${sqlPath}`);
+  res.send(`Ran the SQL file ${sqlPath}`);
 });
-
-
-function renderTemplate(sqlQueryTemplate, context) {
-  const cleanTemplate = sqlQueryTemplate.replace(/`/g, '\\`');
-  return eval(`
-    (function() {
-      ${Object.entries(context).map(
-        ([key, value]) => `const ${key} = '${value}';`
-      ).join('\\n')}
-      return \`${cleanTemplate}\`;
-    })()`
-  );
-}
