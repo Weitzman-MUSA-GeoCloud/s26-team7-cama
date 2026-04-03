@@ -119,6 +119,7 @@ gcloud workflows deploy data-pipeline \
   --project=musa5090s26-team7 \
   --source=tasks/data_pipeline/workflow.yaml \
   --location=us-east4 \
+  --execution-history-level=execution-history-detailed \
   --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com
 
 # Trigger the Workflow
