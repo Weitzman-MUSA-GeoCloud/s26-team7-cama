@@ -34,7 +34,7 @@ npm install
 Start the **extract** function on port 8080:
 
 ```bash
-npx @google-cloud/functions-framework --target=extract_opa_properties --port=8080
+npm run start:extract --port=8080
 ```
 
 In a separate terminal, trigger it:
@@ -46,7 +46,7 @@ curl -X POST http://localhost:8080
 To test the **prepare** function, just change the target:
 
 ```bash
-npx @google-cloud/functions-framework --target=prepare_opa_properties --port=8080
+npm run start:prepare --port=8080
 ```
 
 And trigger it similarly with `curl`.
@@ -65,7 +65,7 @@ This function looks for environment variables for the target dataset and bucket 
 Start it up:
 
 ```bash
-npx @google-cloud/functions-framework --target=run_sql --port=8080
+npm run start --port=8080
 ```
 
 Since this function requires a `sql` payload, you can trigger it locally by passing the query argument via POST or GET:
