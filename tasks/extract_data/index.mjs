@@ -31,6 +31,7 @@ functions.http('extract_opa_properties', async (req, res) => {
   console.log(`Writing to gs://${BUCKET_NAME}/${file.name}`);
   await pipeline(readResponse, writeFile);
 
+  console.log(`Successfully extracted opa_properties to gs://${BUCKET_NAME}/${file.name}`);
   res.send(`Successfully extracted opa_properties to gs://${BUCKET_NAME}/${file.name}`);
 });
 
@@ -76,5 +77,6 @@ functions.http('prepare_opa_properties', async (req, res) => {
     writeTableFile,
   );
 
+  console.log(`Successfully prepared data at gs://${TABLE_BUCKET_NAME}/${tableFile.name}`);
   res.send(`Successfully prepared data at gs://${TABLE_BUCKET_NAME}/${tableFile.name}`);
 });

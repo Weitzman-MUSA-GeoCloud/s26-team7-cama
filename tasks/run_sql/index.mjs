@@ -47,6 +47,8 @@ functions.http('run_sql', async (req, res) => {
   const sqlQuery = Mustache.render(sqlQueryTemplate, context);
 
   // Run the query
+  console.log(`Running the SQL file ${sqlPath}`);
+  console.log(sqlQuery);
   const bigqueryClient = new BigQuery();
   await bigqueryClient.query({
     query: sqlQuery,
