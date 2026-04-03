@@ -1,4 +1,4 @@
-CREATE OR REPLACE TABLE `{{project_id}}.core.opa_properties`
+CREATE OR REPLACE TABLE `{{ project_id }}.core.opa_properties`
 AS (
     SELECT
         parcel_number AS property_id,
@@ -29,5 +29,5 @@ AS (
             CASE WHEN total_area = '' THEN NULL ELSE CAST(total_area AS NUMERIC) END AS total_area,
             CASE WHEN total_livable_area = '' THEN NULL ELSE CAST(total_livable_area AS NUMERIC) END AS total_livable_area
         )
-    FROM `{{project_id}}.{{dataset_name}}.opa_properties`
+    FROM `{{ project_id }}.{{ dataset_name }}.opa_properties`
 );
