@@ -23,7 +23,10 @@ functions.http('extract_opa_properties', async (req, res) => {
 
   // Convert Web ReadableStream to Node.js Readable stream
   const readResponse = Readable.fromWeb(response.body);
-  const writeFile = file.createWriteStream();
+  const writeFile = file.createWriteStream({
+    contentType: 'text/csv',
+    gzip: true
+  });
 
   console.log(`Writing to gs://${BUCKET_NAME}/${file.name}`);
   await pipeline(readResponse, writeFile);
@@ -41,8 +44,10 @@ functions.http('prepare_opa_properties', async (req, res) => {
 
   console.log(`Streaming gs://${RAW_BUCKET_NAME}/${rawFile.name} -> gs://${TABLE_BUCKET_NAME}/${tableFile.name}`);
 
-  // Reader for the raw file
-  const readRawFile = rawFile.createReadStream();
+  // Reader for the raw file; decompress because we gzipped in the extract function
+  const readRawFile = rawFile.createReadStream({
+    decompress: true
+  });
 
   // Parser for the raw file that normalizes the column headers to lowercase
   const parseCsv = csv({
