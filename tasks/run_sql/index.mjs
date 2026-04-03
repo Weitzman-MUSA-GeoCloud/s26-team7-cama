@@ -17,6 +17,7 @@ const SQL_DIR_NAME = path.join(__dirname, 'sql');
 
 functions.http('run_sql', async (req, res) => {
   // Read SQL file specified in the request query args (e.g. ?sql=source/opa_properties.sql)
+  // or as JSON in the request body (e.g. '{ "sql": "source/opa_properties.sql" }')
   const sqlParam = req.query['sql'] || req.body['sql'];
   if (!sqlParam) {
     res.status(400).send('Missing sql parameter');
