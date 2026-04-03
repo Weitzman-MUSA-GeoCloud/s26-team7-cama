@@ -1,0 +1,11 @@
+{
+  "name": "extract-data",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.mjs",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.4.0",
+    "@google-cloud/storage": "^7.9.0",
+    "csv-parser": "^3.0.0"
+  }
+}
