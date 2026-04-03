@@ -1,0 +1,15 @@
+{
+  "name": "extract-data",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start:extract": "npx @google-cloud/functions-framework --target=extract_opa_properties",
+    "start:prepare": "npx @google-cloud/functions-framework --target=prepare_opa_properties"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.4.0",
+    "@google-cloud/storage": "^7.9.0",
+    "csv-parser": "^3.0.0"
+  }
+}
