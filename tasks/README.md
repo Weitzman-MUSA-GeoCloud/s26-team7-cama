@@ -85,30 +85,38 @@ To deploy the Cloud Functions and Workflow, use the following commands:
 ```bash
 # Deploy the Cloud Functions
 gcloud functions deploy extract-opa-properties \
-  --gen2 --runtime=nodejs20 --region=us-east1 \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
   --source=tasks/extract_data \
   --entry-point=extract_opa_properties \
   --trigger-http \
-  --timeout=540s
+  --no-allow-unauthenticated \
+  --timeout=3600s
 
 gcloud functions deploy prepare-opa-properties \
-  --gen2 --runtime=nodejs20 --region=us-east1 \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
   --source=tasks/extract_data \
   --entry-point=prepare_opa_properties \
   --trigger-http \
-  --timeout=540s
+  --no-allow-unauthenticated \
+  --timeout=3600s
 
 gcloud functions deploy run-sql \
-  --gen2 --runtime=nodejs20 --region=us-east1 \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
   --source=tasks/run_sql \
   --entry-point=run_sql \
-  --trigger-http
+  --trigger-http \
+  --no-allow-unauthenticated \
+  --timeout=3600s
 
 # Deploy the Workflow
 gcloud workflows deploy data-pipeline \
+  --project=musa5090s26-team7 \
   --source=tasks/data_pipeline/workflow.yaml \
-  --location=us-east1
+  --location=us-east4
 
 # Trigger the Workflow
-gcloud workflows run data-pipeline --location=us-east1
+gcloud workflows run data-pipeline --project=musa5090s26-team7 --location=us-east4
 ```
