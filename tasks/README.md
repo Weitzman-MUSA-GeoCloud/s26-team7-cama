@@ -91,6 +91,7 @@ gcloud functions deploy extract-opa-properties \
   --entry-point=extract_opa_properties \
   --trigger-http \
   --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
   --timeout=3600s
 
 gcloud functions deploy prepare-opa-properties \
@@ -100,6 +101,7 @@ gcloud functions deploy prepare-opa-properties \
   --entry-point=prepare_opa_properties \
   --trigger-http \
   --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
   --timeout=3600s
 
 gcloud functions deploy run-sql \
@@ -109,13 +111,15 @@ gcloud functions deploy run-sql \
   --entry-point=run_sql \
   --trigger-http \
   --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
   --timeout=3600s
 
 # Deploy the Workflow
 gcloud workflows deploy data-pipeline \
   --project=musa5090s26-team7 \
   --source=tasks/data_pipeline/workflow.yaml \
-  --location=us-east4
+  --location=us-east4 \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com
 
 # Trigger the Workflow
 gcloud workflows run data-pipeline --project=musa5090s26-team7 --location=us-east4
