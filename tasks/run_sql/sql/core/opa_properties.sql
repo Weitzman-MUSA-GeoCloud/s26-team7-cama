@@ -1,7 +1,7 @@
-CREATE OR REPLACE TABLE \`core.opa_properties\`
+CREATE OR REPLACE TABLE `{{project_id}}.core.opa_properties`
 AS (
     SELECT
         parcel_number AS property_id,
         *
-    FROM \`{{dataset_name}}.opa_properties\`
+    FROM `{{project_id}}.{{dataset_name}}.opa_properties`
 );
