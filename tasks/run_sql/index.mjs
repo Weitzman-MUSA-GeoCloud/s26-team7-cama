@@ -38,10 +38,10 @@ functions.http('run_sql', async (req, res) => {
 
   // Setup the context for template rendering
   const context = {
-    bucket_name: process.env.DATA_LAKE_BUCKET || 'musa5090s26-team7-prepared_data',
-    project_id: process.env.DATA_LAKE_PROJECT_ID || 'musa5090s26-team7',
-    dataset_name: process.env.DATA_LAKE_DATASET || 'source',
-    location: process.env.DATA_LAKE_LOCATION || 'us-east4',
+    "bucket_name": process.env.DATA_LAKE_BUCKET || 'musa5090s26-team7-prepared_data',
+    "project_id": process.env.DATA_LAKE_PROJECT_ID || 'musa5090s26-team7',
+    "dataset_name": process.env.DATA_LAKE_DATASET || 'source',
+    "location": process.env.DATA_LAKE_LOCATION || 'us-east4',
   };
 
   const sqlQuery = Mustache.render(sqlQueryTemplate, context);
@@ -49,8 +49,8 @@ functions.http('run_sql', async (req, res) => {
   // Run the query
   const bigqueryClient = new BigQuery();
   await bigqueryClient.query({
-      query: sqlQuery,
-      location: context.location,
+    query: sqlQuery,
+    location: context.location,
   });
   console.log(`Ran the SQL file ${sqlPath}`);
   res.send(`Ran the SQL file ${sqlPath}`);

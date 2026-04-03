@@ -25,7 +25,7 @@ functions.http('extract_opa_properties', async (req, res) => {
   const readResponse = Readable.fromWeb(response.body);
   const writeFile = file.createWriteStream({
     contentType: 'text/csv',
-    gzip: true
+    gzip: true,
   });
 
   console.log(`Writing to gs://${BUCKET_NAME}/${file.name}`);
@@ -46,12 +46,12 @@ functions.http('prepare_opa_properties', async (req, res) => {
 
   // Reader for the raw file; decompress because we gzipped in the extract function
   const readRawFile = rawFile.createReadStream({
-    decompress: true
+    decompress: true,
   });
 
   // Parser for the raw file that normalizes the column headers to lowercase
   const parseCsv = csv({
-    mapHeaders: ({ header }) => header.toLowerCase().trim()
+    mapHeaders: ({ header }) => header.toLowerCase().trim(),
   });
 
   // Stream transformer that outputs JSON lines
@@ -60,7 +60,7 @@ functions.http('prepare_opa_properties', async (req, res) => {
     transform(chunk, encoding, callback) {
       // chunk is an object with row data.
       callback(null, JSON.stringify(chunk) + '\n');
-    }
+    },
   });
 
   // Writer for the external table file; gzips to save space
@@ -73,7 +73,7 @@ functions.http('prepare_opa_properties', async (req, res) => {
     readRawFile,
     parseCsv,
     makeJsonl,
-    writeTableFile
+    writeTableFile,
   );
 
   res.send(`Successfully prepared data at gs://${TABLE_BUCKET_NAME}/${tableFile.name}`);
