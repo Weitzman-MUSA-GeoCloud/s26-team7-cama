@@ -8,6 +8,12 @@
 dialect = bigquery
 rules = core
 exclude_rules = LT05,AL07,ST07,RF06
+templater = jinja
+
+[sqlfluff:templater:jinja:context]
+project_id = musa5090s26-teamX
+dataset_name = source
+bucket_name = musa5090s26-teamX-prepared_data
 
 [sqlfluff:indentation]
 indent_unit = space
