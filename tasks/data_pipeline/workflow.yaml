@@ -4,18 +4,21 @@ main:
     - extract_opa_properties:
         call: http.post
         args:
+          timeout: 1800
           url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/extract-opa-properties"}
           auth:
             type: OIDC
     - prepare_opa_properties:
         call: http.post
         args:
+          timeout: 1800
           url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/prepare-opa-properties"}
           auth:
             type: OIDC
     - load_opa_properties_source:
         call: http.post
         args:
+          timeout: 1800
           url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
           body:
             sql: source/opa_properties.sql
@@ -24,6 +27,7 @@ main:
     - load_opa_properties_core:
         call: http.post
         args:
+          timeout: 1800
           url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
           body:
             sql: core/opa_properties.sql
