@@ -1,7 +1,7 @@
 main:
   params: [args]
   steps:
-    - parallel_process:
+    - ingest_data:
         parallel:
           branches:
             - properties_branch:
