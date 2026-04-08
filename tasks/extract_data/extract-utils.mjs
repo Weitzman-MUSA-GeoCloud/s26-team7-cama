@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
+import path from 'path';
 
 /**
  * Fetches data from a given URL and streams the content directly to a file
@@ -23,8 +24,20 @@ export async function extractToGCS(url, storage, bucketName, fileDest) {
 
   // Convert Web ReadableStream to Node.js Readable stream
   const readResponse = Readable.fromWeb(response.body);
+
+  const extMap = {
+    '.geojson': 'application/geo+json',
+    '.csv': 'text/csv',
+  }
+  const ext = path.extname(fileDest).toLowerCase();
+  const contentType = extMap[ext];
+
+  if (!contentType) {
+    throw new Error(`Unsupported file extension: "${ext}"; expected one of "${Object.keys(extMap).join('", "')}"`);
+  }
+
   const writeFile = file.createWriteStream({
-    contentType: 'text/csv',
+    contentType: contentType,
     gzip: true,
   });
 

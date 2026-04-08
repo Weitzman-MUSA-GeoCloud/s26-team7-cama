@@ -1,6 +1,8 @@
 import csv from 'csv-parser';
 import stream from 'stream';
 import { pipeline } from 'stream/promises';
+import { Storage } from '@google-cloud/storage';
+import JSONStream from 'JSONStream';
 
 /**
  * Streams a raw compressed CSV from Google Cloud Storage, normalizes column
@@ -20,23 +22,12 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
 
   console.log(`Streaming gs://${rawBucketName}/${rawFile.name} -> gs://${tableBucketName}/${tableFile.name}`);
 
+  const [metadata] = await rawFile.getMetadata();
+  const contentType = metadata.contentType;
+
   // Reader for the raw file; decompress because we gzipped in the extract function
   const readRawFile = rawFile.createReadStream({
     decompress: true,
-  });
-
-  // Parser for the raw file that normalizes the column headers to lowercase
-  const parseCsv = csv({
-    mapHeaders: ({ header }) => header.toLowerCase().trim(),
-  });
-
-  // Stream transformer that outputs JSON lines
-  const makeJsonl = new stream.Transform({
-    objectMode: true,
-    transform(chunk, encoding, callback) {
-      // chunk is an object with row data.
-      callback(null, JSON.stringify(chunk) + '\n');
-    },
   });
 
   // Writer for the external table file; gzips to save space
@@ -45,12 +36,46 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
     gzip: true,
   });
 
-  await pipeline(
-    readRawFile,
-    parseCsv,
-    makeJsonl,
-    writeTableFile,
-  );
+  if (contentType === 'application/geo+json') {
+    const parseGeoJson = JSONStream.parse('features.*');
+
+    const makeJsonl = new stream.Transform({
+      objectMode: true,
+      transform(chunk, encoding, callback) {
+        const record = {};
+        if (chunk.properties) {
+          for (const [k, v] of Object.entries(chunk.properties)) {
+            record[k.toLowerCase()] = v;
+          }
+        }
+        if (chunk.geometry) {
+          record['geometry'] = JSON.stringify(chunk.geometry);
+        }
+        callback(null, JSON.stringify(record) + '\n');
+      }
+    });
+
+    await pipeline(readRawFile, parseGeoJson, makeJsonl, writeTableFile);
+
+  } else if (contentType === 'text/csv') {
+    // Parser for the raw file that normalizes the column headers to lowercase
+    const parseCsv = csv({
+      mapHeaders: ({ header }) => header.toLowerCase().trim(),
+    });
+
+    // Stream transformer that outputs JSON lines
+    const makeJsonl = new stream.Transform({
+      objectMode: true,
+      transform(chunk, encoding, callback) {
+        // chunk is an object with row data.
+        callback(null, JSON.stringify(chunk) + '\n');
+      },
+    });
+
+    await pipeline(readRawFile, parseCsv, makeJsonl, writeTableFile);
+  } else {
+    throw new Error(`Unsupported content type on source file "${sourceFile}": "${contentType}"`);
+  }
 
   console.log(`Successfully prepared data at gs://${tableBucketName}/${tableFile.name}`);
   return `Successfully prepared data at gs://${tableBucketName}/${tableFile.name}`;
