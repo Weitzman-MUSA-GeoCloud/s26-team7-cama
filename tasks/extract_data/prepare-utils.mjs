@@ -36,12 +36,30 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
     gzip: true,
   });
 
+  /**
+   * Helper function to emit buffered chunks of data to a stream.
+   * @param {string} buffer - The buffer to emit.
+   * @param {number} minSize - The minimum size of the buffer to emit.
+   * @param {function} callback - The callback function to call after emitting the buffer.
+   * @returns {boolean} - True if the buffer was emitted, false otherwise.
+   */
+  function sendBufferedChunks(buffer, minSize, callback) {
+    if (buffer && buffer.length >= minSize) {
+      callback(null, buffer);
+      return true;
+    } else {
+      callback();
+      return false;
+    }
+  }
+
   if (contentType === 'application/geo+json') {
     const parseGeoJson = JSONStream.parse('features.*');
 
     const makeJsonl = new stream.Transform({
       objectMode: true,
       transform(chunk, encoding, callback) {
+        if (!this.buffer) this.buffer = '';
         const record = {};
         if (chunk.properties) {
           for (const [k, v] of Object.entries(chunk.properties)) {
@@ -51,7 +69,15 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
         if (chunk.geometry) {
           record['geometry'] = JSON.stringify(chunk.geometry);
         }
-        callback(null, JSON.stringify(record) + '\n');
+        this.buffer += JSON.stringify(record) + '\n';
+
+        // Emit chunks of roughly ~1MB to minimize stream overhead
+        if (sendBufferedChunks(this.buffer, 1024 * 1024, callback)) {
+          this.buffer = '';
+        }
+      },
+      flush(callback) {
+        sendBufferedChunks(this.buffer, 1, callback);
       }
     });
 
@@ -63,13 +89,21 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
       mapHeaders: ({ header }) => header.toLowerCase().trim(),
     });
 
-    // Stream transformer that outputs JSON lines
+    // Stream transformer that outputs JSON lines in batches
     const makeJsonl = new stream.Transform({
       objectMode: true,
       transform(chunk, encoding, callback) {
-        // chunk is an object with row data.
-        callback(null, JSON.stringify(chunk) + '\n');
+        if (!this.buffer) this.buffer = '';
+        this.buffer += JSON.stringify(chunk) + '\n';
+
+        // Emit chunks of roughly ~1MB to minimize stream overhead
+        if (sendBufferedChunks(this.buffer, 1024 * 1024, callback)) {
+          this.buffer = '';
+        }
       },
+      flush(callback) {
+        sendBufferedChunks(this.buffer, 1, callback);
+      }
     });
 
     await pipeline(readRawFile, parseCsv, makeJsonl, writeTableFile);
