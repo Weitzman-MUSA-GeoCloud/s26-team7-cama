@@ -1,6 +1,11 @@
 import csv from 'csv-parser';
 import stream from 'stream';
 import { pipeline } from 'stream/promises';
+import JSONStream from 'JSONStream';
+
+// Import storage client for use in function signatures
+// eslint-disable-next-line no-unused-vars
+import { Storage } from '@google-cloud/storage';
 
 /**
  * Streams a raw compressed CSV from Google Cloud Storage, normalizes column
@@ -20,23 +25,12 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
 
   console.log(`Streaming gs://${rawBucketName}/${rawFile.name} -> gs://${tableBucketName}/${tableFile.name}`);
 
+  const [metadata] = await rawFile.getMetadata();
+  const contentType = metadata.contentType;
+
   // Reader for the raw file; decompress because we gzipped in the extract function
   const readRawFile = rawFile.createReadStream({
     decompress: true,
-  });
-
-  // Parser for the raw file that normalizes the column headers to lowercase
-  const parseCsv = csv({
-    mapHeaders: ({ header }) => header.toLowerCase().trim(),
-  });
-
-  // Stream transformer that outputs JSON lines
-  const makeJsonl = new stream.Transform({
-    objectMode: true,
-    transform(chunk, encoding, callback) {
-      // chunk is an object with row data.
-      callback(null, JSON.stringify(chunk) + '\n');
-    },
   });
 
   // Writer for the external table file; gzips to save space
@@ -45,12 +39,80 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
     gzip: true,
   });
 
-  await pipeline(
-    readRawFile,
-    parseCsv,
-    makeJsonl,
-    writeTableFile,
-  );
+  /**
+   * Helper function to emit buffered chunks of data to a stream.
+   * @param {string} buffer - The buffer to emit.
+   * @param {number} minSize - The minimum size of the buffer to emit.
+   * @param {function} callback - The callback function to call after emitting the buffer.
+   * @returns {boolean} - True if the buffer was emitted, false otherwise.
+   */
+  function sendBufferedChunks(buffer, minSize, callback) {
+    if (buffer && buffer.length >= minSize) {
+      callback(null, buffer);
+      return true;
+    } else {
+      callback();
+      return false;
+    }
+  }
+
+  if (contentType === 'application/geo+json') {
+    const parseGeoJson = JSONStream.parse('features.*');
+
+    const makeJsonl = new stream.Transform({
+      objectMode: true,
+      transform(chunk, encoding, callback) {
+        if (!this.buffer) this.buffer = '';
+        const record = {};
+        if (chunk.properties) {
+          for (const [k, v] of Object.entries(chunk.properties)) {
+            record[k.toLowerCase()] = v;
+          }
+        }
+        if (chunk.geometry) {
+          record['geometry'] = JSON.stringify(chunk.geometry);
+        }
+        this.buffer += JSON.stringify(record) + '\n';
+
+        // Emit chunks of roughly ~1MB to minimize stream overhead
+        if (sendBufferedChunks(this.buffer, 1024 * 1024, callback)) {
+          this.buffer = '';
+        }
+      },
+      flush(callback) {
+        sendBufferedChunks(this.buffer, 1, callback);
+      },
+    });
+
+    await pipeline(readRawFile, parseGeoJson, makeJsonl, writeTableFile);
+
+  } else if (contentType === 'text/csv') {
+    // Parser for the raw file that normalizes the column headers to lowercase
+    const parseCsv = csv({
+      mapHeaders: ({ header }) => header.toLowerCase().trim(),
+    });
+
+    // Stream transformer that outputs JSON lines in batches
+    const makeJsonl = new stream.Transform({
+      objectMode: true,
+      transform(chunk, encoding, callback) {
+        if (!this.buffer) this.buffer = '';
+        this.buffer += JSON.stringify(chunk) + '\n';
+
+        // Emit chunks of roughly ~1MB to minimize stream overhead
+        if (sendBufferedChunks(this.buffer, 1024 * 1024, callback)) {
+          this.buffer = '';
+        }
+      },
+      flush(callback) {
+        sendBufferedChunks(this.buffer, 1, callback);
+      },
+    });
+
+    await pipeline(readRawFile, parseCsv, makeJsonl, writeTableFile);
+  } else {
+    throw new Error(`Unsupported content type on source file "${sourceFile}": "${contentType}"`);
+  }
 
   console.log(`Successfully prepared data at gs://${tableBucketName}/${tableFile.name}`);
   return `Successfully prepared data at gs://${tableBucketName}/${tableFile.name}`;

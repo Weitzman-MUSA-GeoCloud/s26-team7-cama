@@ -1,7 +1,7 @@
 main:
   params: [args]
   steps:
-    - parallel_process:
+    - ingest_data:
         parallel:
           branches:
             - properties_branch:
@@ -70,5 +70,39 @@ main:
                         url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
                         body:
                           sql: core/opa_assessments.sql
+                        auth:
+                          type: OIDC
+            - pwd_parcels_branch:
+                steps:
+                  - extract_pwd_parcels:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/extract-pwd-parcels"}
+                        auth:
+                          type: OIDC
+                  - prepare_pwd_parcels:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/prepare-pwd-parcels"}
+                        auth:
+                          type: OIDC
+                  - load_pwd_parcels_source:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: source/pwd_parcels.sql
+                        auth:
+                          type: OIDC
+                  - load_pwd_parcels_core:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: core/pwd_parcels.sql
                         auth:
                           type: OIDC

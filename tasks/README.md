@@ -8,9 +8,11 @@ run_sql/
     source/
       opa_assessments.sql
       opa_properties.sql
+      pwd_parcels.sql
     core/
       opa_assessments.sql
       opa_properties.sql
+      pwd_parcels.sql
   index.mjs
   package.json
 
@@ -39,7 +41,7 @@ Start the appropriate **extract** function on port 8080:
 npm run start:extract:properties --port=8080
 ```
 
-_Note that you can substitute `properties` with `assessments` to test the other extract function._
+_Note that you can substitute `properties` with `assessments` or `parcels` to test the other extract function._
 
 In a separate terminal, trigger it:
 
@@ -53,7 +55,7 @@ To test the **prepare** function, just change the target:
 npm run start:prepare:properties --port=8080
 ```
 
-_Note that you can substitute `properties` with `assessments` to test the other prepare function._
+_Note that you can substitute `properties` with `assessments` or `parcels` to test the other prepare function._
 
 And trigger it similarly with `curl`.
 
@@ -127,6 +129,26 @@ gcloud functions deploy prepare-opa-assessments \
   --gen2 --runtime=nodejs24 --region=us-east4 \
   --source=tasks/extract_data \
   --entry-point=prepare_opa_assessments \
+  --trigger-http \
+  --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
+  --timeout=3600s
+
+gcloud functions deploy extract-pwd-parcels \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
+  --source=tasks/extract_data \
+  --entry-point=extract_pwd_parcels \
+  --trigger-http \
+  --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
+  --timeout=3600s
+
+gcloud functions deploy prepare-pwd-parcels \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
+  --source=tasks/extract_data \
+  --entry-point=prepare_pwd_parcels \
   --trigger-http \
   --no-allow-unauthenticated \
   --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
