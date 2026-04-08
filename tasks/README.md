@@ -8,9 +8,11 @@ run_sql/
     source/
       opa_assessments.sql
       opa_properties.sql
+      pwd_parcels.sql
     core/
       opa_assessments.sql
       opa_properties.sql
+      pwd_parcels.sql
   index.mjs
   package.json
 
