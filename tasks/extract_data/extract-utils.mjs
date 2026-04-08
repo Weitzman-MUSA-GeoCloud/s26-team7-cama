@@ -28,7 +28,7 @@ export async function extractToGCS(url, storage, bucketName, fileDest) {
   const extMap = {
     '.geojson': 'application/geo+json',
     '.csv': 'text/csv',
-  }
+  };
   const ext = path.extname(fileDest).toLowerCase();
   const contentType = extMap[ext];
 

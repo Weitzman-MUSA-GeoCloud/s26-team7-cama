@@ -19,7 +19,7 @@ functions.http('prepare_opa_properties', async (req, res) => {
     'musa5090s26-team7-raw_data',
     'musa5090s26-team7-prepared_data',
     'opa_properties/opa_properties.csv',
-    'opa_properties/data.jsonl'
+    'opa_properties/data.jsonl',
   );
   res.send(msg);
 });
@@ -38,7 +38,7 @@ functions.http('prepare_opa_assessments', async (req, res) => {
     'musa5090s26-team7-raw_data',
     'musa5090s26-team7-prepared_data',
     'opa_assessments/opa_assessments.csv',
-    'opa_assessments/data.jsonl'
+    'opa_assessments/data.jsonl',
   );
   res.send(msg);
 });
@@ -57,7 +57,7 @@ functions.http('prepare_pwd_parcels', async (req, res) => {
     'musa5090s26-team7-raw_data',
     'musa5090s26-team7-prepared_data',
     'pwd_parcels/data.geojson',
-    'pwd_parcels/data.jsonl'
+    'pwd_parcels/data.jsonl',
   );
   res.send(msg);
 });

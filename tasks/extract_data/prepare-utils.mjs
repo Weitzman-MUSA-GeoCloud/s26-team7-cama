@@ -1,8 +1,11 @@
 import csv from 'csv-parser';
 import stream from 'stream';
 import { pipeline } from 'stream/promises';
-import { Storage } from '@google-cloud/storage';
 import JSONStream from 'JSONStream';
+
+// Import storage client for use in function signatures
+// eslint-disable-next-line no-unused-vars
+import { Storage } from '@google-cloud/storage';
 
 /**
  * Streams a raw compressed CSV from Google Cloud Storage, normalizes column
@@ -78,7 +81,7 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
       },
       flush(callback) {
         sendBufferedChunks(this.buffer, 1, callback);
-      }
+      },
     });
 
     await pipeline(readRawFile, parseGeoJson, makeJsonl, writeTableFile);
@@ -103,7 +106,7 @@ export async function prepareToGCS(storage, rawBucketName, tableBucketName, sour
       },
       flush(callback) {
         sendBufferedChunks(this.buffer, 1, callback);
-      }
+      },
     });
 
     await pipeline(readRawFile, parseCsv, makeJsonl, writeTableFile);
