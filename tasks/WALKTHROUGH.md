@@ -1,6 +1,6 @@
 # OPA Properties Data Pipeline Walkthrough
 
-* I used Google Gemini 3 Pro (via Antigravity) to help me build this pipeline. I took the issue markdown and said the following:
+* I used Google Gemini 3 Pro (via Antigravity) to help me build this pipeline. I took the markdown from [issue #1](https://github.com/Weitzman-MUSA-GeoCloud/s26-team7-cama/issues/1) and said the following:
 
   ````text
   Hey Gemini, I'm going to get started on this issue in s26-team7-cama:
@@ -30,9 +30,9 @@
       run_sql/
       sql/
           source/
-          opa_properties.sql
+              opa_properties.sql
           core/
-          opa_properties.sql
+              opa_properties.sql
       index.mjs
       package.json
   ```
@@ -40,9 +40,9 @@
   Rather than having a proliferation of different folders for the extract/prepare processes, I'd like to just define all of those functions within the extract_data folder, and then deploy the Cloud Functions individually (essentially, all the extract/prepare Cloud Functions will have the same code base, but use different entrypoints).
   ````
 
-  After that I had something closer to what I wanted. The state of the code at this point is captured in commit 5a667945eba5ed1ef3408dca26f99fabbe03d128.
+  After that I had something closer to what I wanted. The state of the code at this point is captured in commit [aea1320](https://github.com/Weitzman-MUSA-GeoCloud/s26-team7-cama/commit/aea13203bfe9a0b5210666a65ee7b6e6bcf4961c).
 
-* I then read through all of the code that Gemini generated! To organize my review, I followed the path of the pipeline workflow, starting with the extract function.
+* **I then read through all of the code that Gemini generated!** I'm not kidding and I'm not just saying this because I want you to do it too. I always review the code that AI generates for me because it's often subtly wrong. To organize my review, I followed the path of the pipeline workflow, starting with the extract function.
 
   - I reviewed the extract function:
     - When calling `createWriteStream`, Gemini originally used an option called `resumable` and set it to `false`. I had no idea what that option was for, so I had to look it up. Turns out having `resumable: false` is useful for reducing network overhead while uploading small files (under 10MB). But the files we're uploading aren't small, so I removed it (the default is `resumable: true`).

@@ -4,12 +4,17 @@
   "type": "module",
   "main": "index.mjs",
   "scripts": {
-    "start:extract": "npx @google-cloud/functions-framework --target=extract_opa_properties",
-    "start:prepare": "npx @google-cloud/functions-framework --target=prepare_opa_properties"
+    "start:extract:properties": "npx @google-cloud/functions-framework --target=extract_opa_properties",
+    "start:prepare:properties": "npx @google-cloud/functions-framework --target=prepare_opa_properties",
+    "start:extract:assessments": "npx @google-cloud/functions-framework --target=extract_opa_assessments",
+    "start:prepare:assessments": "npx @google-cloud/functions-framework --target=prepare_opa_assessments",
+    "start:extract:parcels": "npx @google-cloud/functions-framework --target=extract_pwd_parcels",
+    "start:prepare:parcels": "npx @google-cloud/functions-framework --target=prepare_pwd_parcels"
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.0",
     "@google-cloud/storage": "^7.9.0",
-    "csv-parser": "^3.0.0"
+    "csv-parser": "^3.0.0",
+    "JSONStream": "^1.3.5"
   }
 }

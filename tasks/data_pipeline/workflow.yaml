@@ -1,35 +1,108 @@
 main:
   params: [args]
   steps:
-    - extract_opa_properties:
-        call: http.post
-        args:
-          timeout: 1800
-          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/extract-opa-properties"}
-          auth:
-            type: OIDC
-    - prepare_opa_properties:
-        call: http.post
-        args:
-          timeout: 1800
-          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/prepare-opa-properties"}
-          auth:
-            type: OIDC
-    - load_opa_properties_source:
-        call: http.post
-        args:
-          timeout: 1800
-          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
-          body:
-            sql: source/opa_properties.sql
-          auth:
-            type: OIDC
-    - load_opa_properties_core:
-        call: http.post
-        args:
-          timeout: 1800
-          url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
-          body:
-            sql: core/opa_properties.sql
-          auth:
-            type: OIDC
+    - ingest_data:
+        parallel:
+          branches:
+            - properties_branch:
+                steps:
+                  - extract_opa_properties:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/extract-opa-properties"}
+                        auth:
+                          type: OIDC
+                  - prepare_opa_properties:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/prepare-opa-properties"}
+                        auth:
+                          type: OIDC
+                  - load_opa_properties_source:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: source/opa_properties.sql
+                        auth:
+                          type: OIDC
+                  - load_opa_properties_core:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: core/opa_properties.sql
+                        auth:
+                          type: OIDC
+            - assessments_branch:
+                steps:
+                  - extract_opa_assessments:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/extract-opa-assessments"}
+                        auth:
+                          type: OIDC
+                  - prepare_opa_assessments:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/prepare-opa-assessments"}
+                        auth:
+                          type: OIDC
+                  - load_opa_assessments_source:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: source/opa_assessments.sql
+                        auth:
+                          type: OIDC
+                  - load_opa_assessments_core:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: core/opa_assessments.sql
+                        auth:
+                          type: OIDC
+            - pwd_parcels_branch:
+                steps:
+                  - extract_pwd_parcels:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/extract-pwd-parcels"}
+                        auth:
+                          type: OIDC
+                  - prepare_pwd_parcels:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/prepare-pwd-parcels"}
+                        auth:
+                          type: OIDC
+                  - load_pwd_parcels_source:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: source/pwd_parcels.sql
+                        auth:
+                          type: OIDC
+                  - load_pwd_parcels_core:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: core/pwd_parcels.sql
+                        auth:
+                          type: OIDC

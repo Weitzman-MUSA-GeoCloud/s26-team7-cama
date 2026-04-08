@@ -1,16 +1,20 @@
 ## Folder Structure
 
 extract_data/
-    index.mjs
-    package.json
+  index.mjs
+  package.json
 run_sql/
-    sql/
+  sql/
     source/
-        opa_properties.sql
+      opa_assessments.sql
+      opa_properties.sql
+      pwd_parcels.sql
     core/
-        opa_properties.sql
-    index.mjs
-    package.json
+      opa_assessments.sql
+      opa_properties.sql
+      pwd_parcels.sql
+  index.mjs
+  package.json
 
 Rather than having a proliferation of different folders for the extract/prepare processes, all of those functions are defined within the `extract_data/` folder, and then deployed as individual Cloud Functions (essentially, all the extract/prepare Cloud Functions have the same code base, but use different entrypoints). This wa
 
@@ -31,11 +35,13 @@ cd tasks/extract_data
 npm install
 ```
 
-Start the **extract** function on port 8080:
+Start the appropriate **extract** function on port 8080:
 
 ```bash
-npm run start:extract --port=8080
+npm run start:extract:properties --port=8080
 ```
+
+_Note that you can substitute `properties` with `assessments` or `parcels` to test the other extract function._
 
 In a separate terminal, trigger it:
 
@@ -46,8 +52,10 @@ curl -X POST http://localhost:8080
 To test the **prepare** function, just change the target:
 
 ```bash
-npm run start:prepare --port=8080
+npm run start:prepare:properties --port=8080
 ```
+
+_Note that you can substitute `properties` with `assessments` or `parcels` to test the other prepare function._
 
 And trigger it similarly with `curl`.
 
@@ -78,6 +86,8 @@ curl -X POST -H "Content-Type: application/json" -d '{"sql": "source/opa_propert
 curl -X POST -H "Content-Type: application/json" -d '{"sql": "core/opa_properties.sql"}' http://localhost:8080
 ```
 
+_Note that you can substitute `properties` with `assessments` to test the other run_sql function._
+
 ## Deployment
 
 To deploy the Cloud Functions and Workflow, use the following commands:
@@ -99,6 +109,46 @@ gcloud functions deploy prepare-opa-properties \
   --gen2 --runtime=nodejs24 --region=us-east4 \
   --source=tasks/extract_data \
   --entry-point=prepare_opa_properties \
+  --trigger-http \
+  --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
+  --timeout=3600s
+
+gcloud functions deploy extract-opa-assessments \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
+  --source=tasks/extract_data \
+  --entry-point=extract_opa_assessments \
+  --trigger-http \
+  --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
+  --timeout=3600s
+
+gcloud functions deploy prepare-opa-assessments \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
+  --source=tasks/extract_data \
+  --entry-point=prepare_opa_assessments \
+  --trigger-http \
+  --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
+  --timeout=3600s
+
+gcloud functions deploy extract-pwd-parcels \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
+  --source=tasks/extract_data \
+  --entry-point=extract_pwd_parcels \
+  --trigger-http \
+  --no-allow-unauthenticated \
+  --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \
+  --timeout=3600s
+
+gcloud functions deploy prepare-pwd-parcels \
+  --project=musa5090s26-team7 \
+  --gen2 --runtime=nodejs24 --region=us-east4 \
+  --source=tasks/extract_data \
+  --entry-point=prepare_pwd_parcels \
   --trigger-http \
   --no-allow-unauthenticated \
   --service-account=data-pipeline-user@musa5090s26-team7.iam.gserviceaccount.com \

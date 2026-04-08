@@ -1,82 +1,63 @@
 import functions from '@google-cloud/functions-framework';
 import { Storage } from '@google-cloud/storage';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
-import csv from 'csv-parser';
-import stream from 'stream';
+import { extractToGCS } from './extract-utils.mjs';
+import { prepareToGCS } from './prepare-utils.mjs';
 
 const storage = new Storage();
 
 // Extract function: fetches CSV data from Carto and uploads to the raw GCS bucket.
 functions.http('extract_opa_properties', async (req, res) => {
-  const BUCKET_NAME = 'musa5090s26-team7-raw_data';
   const url = 'https://phl.carto.com/api/v2/sql?q=SELECT * FROM opa_properties_public&format=csv';
-
-  console.log(`Fetching from ${url}`);
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const bucket = storage.bucket(BUCKET_NAME);
-  const file = bucket.file('opa_properties/opa_properties.csv');
-
-  // Convert Web ReadableStream to Node.js Readable stream
-  const readResponse = Readable.fromWeb(response.body);
-  const writeFile = file.createWriteStream({
-    contentType: 'text/csv',
-    gzip: true,
-  });
-
-  console.log(`Writing to gs://${BUCKET_NAME}/${file.name}`);
-  await pipeline(readResponse, writeFile);
-
-  console.log(`Successfully extracted opa_properties to gs://${BUCKET_NAME}/${file.name}`);
-  res.send(`Successfully extracted opa_properties to gs://${BUCKET_NAME}/${file.name}`);
+  const msg = await extractToGCS(url, storage, 'musa5090s26-team7-raw_data', 'opa_properties/opa_properties.csv');
+  res.send(msg);
 });
 
 // Prepare function: downloads raw file, lowercases fields, converts to JSONL, and uploads to prepared bucket.
 functions.http('prepare_opa_properties', async (req, res) => {
-  const RAW_BUCKET_NAME = 'musa5090s26-team7-raw_data';
-  const TABLE_BUCKET_NAME = 'musa5090s26-team7-prepared_data';
-
-  const rawFile = storage.bucket(RAW_BUCKET_NAME).file('opa_properties/opa_properties.csv');
-  const tableFile = storage.bucket(TABLE_BUCKET_NAME).file('opa_properties/data.jsonl');
-
-  console.log(`Streaming gs://${RAW_BUCKET_NAME}/${rawFile.name} -> gs://${TABLE_BUCKET_NAME}/${tableFile.name}`);
-
-  // Reader for the raw file; decompress because we gzipped in the extract function
-  const readRawFile = rawFile.createReadStream({
-    decompress: true,
-  });
-
-  // Parser for the raw file that normalizes the column headers to lowercase
-  const parseCsv = csv({
-    mapHeaders: ({ header }) => header.toLowerCase().trim(),
-  });
-
-  // Stream transformer that outputs JSON lines
-  const makeJsonl = new stream.Transform({
-    objectMode: true,
-    transform(chunk, encoding, callback) {
-      // chunk is an object with row data.
-      callback(null, JSON.stringify(chunk) + '\n');
-    },
-  });
-
-  // Writer for the external table file; gzips to save space
-  const writeTableFile = tableFile.createWriteStream({
-    contentType: 'application/jsonl',
-    gzip: true,
-  });
-
-  await pipeline(
-    readRawFile,
-    parseCsv,
-    makeJsonl,
-    writeTableFile,
+  const msg = await prepareToGCS(
+    storage,
+    'musa5090s26-team7-raw_data',
+    'musa5090s26-team7-prepared_data',
+    'opa_properties/opa_properties.csv',
+    'opa_properties/data.jsonl',
   );
+  res.send(msg);
+});
 
-  console.log(`Successfully prepared data at gs://${TABLE_BUCKET_NAME}/${tableFile.name}`);
-  res.send(`Successfully prepared data at gs://${TABLE_BUCKET_NAME}/${tableFile.name}`);
+// Extract function: fetches CSV data from S3 and uploads to the raw GCS bucket.
+functions.http('extract_opa_assessments', async (req, res) => {
+  const url = 'https://opendata-downloads.s3.amazonaws.com/assessments.csv';
+  const msg = await extractToGCS(url, storage, 'musa5090s26-team7-raw_data', 'opa_assessments/opa_assessments.csv');
+  res.send(msg);
+});
+
+// Prepare function: downloads raw file, lowercases fields, converts to JSONL, and uploads to prepared bucket.
+functions.http('prepare_opa_assessments', async (req, res) => {
+  const msg = await prepareToGCS(
+    storage,
+    'musa5090s26-team7-raw_data',
+    'musa5090s26-team7-prepared_data',
+    'opa_assessments/opa_assessments.csv',
+    'opa_assessments/data.jsonl',
+  );
+  res.send(msg);
+});
+
+// Extract function: fetches GeoJSON data for PWD parcels and uploads to the raw GCS bucket.
+functions.http('extract_pwd_parcels', async (req, res) => {
+  const url = 'https://hub.arcgis.com/api/v3/datasets/84baed491de44f539889f2af178ad85c_0/downloads/data?format=geojson&spatialRefId=4326&where=1%3D1';
+  const msg = await extractToGCS(url, storage, 'musa5090s26-team7-raw_data', 'pwd_parcels/data.geojson');
+  res.send(msg);
+});
+
+// Prepare function: downloads raw file, extracts GeoJSON features, and uploads JSON-L to prepared bucket.
+functions.http('prepare_pwd_parcels', async (req, res) => {
+  const msg = await prepareToGCS(
+    storage,
+    'musa5090s26-team7-raw_data',
+    'musa5090s26-team7-prepared_data',
+    'pwd_parcels/data.geojson',
+    'pwd_parcels/data.jsonl',
+  );
+  res.send(msg);
 });
