@@ -1,4 +1,5 @@
 CREATE OR REPLACE TABLE `{{ project_id }}.core.opa_assessments`
+CLUSTER BY year
 AS (
     SELECT
         parcel_number AS property_id,
