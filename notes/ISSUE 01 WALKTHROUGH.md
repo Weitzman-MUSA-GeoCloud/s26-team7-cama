@@ -2,13 +2,11 @@
 
 * I used Google Gemini 3 Pro (via Antigravity) to help me build this pipeline. I took the markdown from [issue #1](https://github.com/Weitzman-MUSA-GeoCloud/s26-team7-cama/issues/1) and said the following:
 
-  ````text
-  Hey Gemini, I'm going to get started on this issue in s26-team7-cama:
-
-  ```markdown
-  ...issue markdown here...
-  ```
-  ````
+  > Hey Gemini, I'm going to get started on this issue in s26-team7-cama:
+  >
+  > ```markdown
+  > [...Issue #1 markdown here...]
+  > ```
 
 * From that, Gemini generated some initial files in the `tasks/` directory. It used Python, but I felt like using JS instead. I knew that the week08 folder in the course-info repository had some good examples of how to implement these functions in JS.
 
@@ -16,29 +14,27 @@
 
   Here is the prompt I gave it (note if I want it to refer to specific files for a code pattern, I tell it explicitly):
 
-  ````text
-  Instead of Python, I'm going to use JavaScript for my pipeline scripts for funzies. You can check out the mjs files in course-info/week08/explore_phila_data to get a sense for how these should be implemented.
-
-  Also, I think I'd like to aim for something like the following folder structure:
-
-  ```
-  s26-team7-cama/
-  tasks/
-      extract_data/  # Code for extract and prepare functions
-      index.mjs
-      package.json
-      run_sql/
-      sql/
-          source/
-              opa_properties.sql
-          core/
-              opa_properties.sql
-      index.mjs
-      package.json
-  ```
-
-  Rather than having a proliferation of different folders for the extract/prepare processes, I'd like to just define all of those functions within the extract_data folder, and then deploy the Cloud Functions individually (essentially, all the extract/prepare Cloud Functions will have the same code base, but use different entrypoints).
-  ````
+  > Instead of Python, I'm going to use JavaScript for my pipeline scripts for funzies. You can check out the mjs files in course-info/week08/explore_phila_data to get a sense for how these should be implemented.
+  >
+  > Also, I think I'd like to aim for something like the following folder structure:
+  >
+  > ```
+  > s26-team7-cama/
+  > tasks/
+  >     extract_data/  # Code for extract and prepare functions
+  >     index.mjs
+  >     package.json
+  >     run_sql/
+  >     sql/
+  >         source/
+  >             opa_properties.sql
+  >         core/
+  >             opa_properties.sql
+  >     index.mjs
+  >     package.json
+  > ```
+  >
+  > Rather than having a proliferation of different folders for the extract/prepare processes, I'd like to just define all of those functions within the extract_data folder, and then deploy the Cloud Functions individually (essentially, all the extract/prepare Cloud Functions will have the same code base, but use different entrypoints).
 
   After that I had something closer to what I wanted. The state of the code at this point is captured in commit [aea1320](https://github.com/Weitzman-MUSA-GeoCloud/s26-team7-cama/commit/aea13203bfe9a0b5210666a65ee7b6e6bcf4961c).
 
@@ -77,7 +73,7 @@
     >
     > I completely agree with your instinct here, so I've gone ahead and stripped out the `try/catch` blocks from **tasks/extract_data/index.mjs** altogether. Now any errors (HTTP fetch failures, pipeline stream failures) will bubble right up to GCP Error Reporting automatically!
 
-    🙄
+    🙄 Sometimes I'm not a huge fan of Gemini's enthusiasm.
 
   - I then reviewed the run_sql function:
 

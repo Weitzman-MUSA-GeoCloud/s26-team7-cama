@@ -12,33 +12,31 @@
 
 Here's the plan (slightly corrected by me) that Gemini put together. It uses this to seed its own context for what it should do.
 
-```markdown
-# Implementation Plan: Pre-aggregate Assessment Data into Bins
-
-## Goal Description
-Create a SQL query to pre-aggregate property assessment data into log-scale bins by tax year. This will create a derived table `derived.tax_year_assessment_bins` that the UI can query efficiently without processing the full dataset. The query will be triggered by the existing `run_sql` Cloud Function and orchestrated by the Cloud Workflow.
-
-## Proposed Changes
-
-### SQL Aggregation (Derived Data)
-#### [NEW] `tasks/run_sql/sql/derived/tax_year_assessment_bins.sql`
-- Add a new SQL file that creates or replaces the `derived.tax_year_assessment_bins` table.
-- Calculate bins for the assessment values using `market_value` from `core.opa_assessments`.
-- Use a logarithmic or linear binning approach (e.g. intervals of $50,000 for linear scaling or powers of 10/log rounding for log scale).
-   Linear binning is easiest: `FLOOR(market_value / 50000) * 50000`.
-
-### Data Pipeline Workflow
-#### [MODIFY] [tasks/data_pipeline/workflow.yaml](file:///home/mjumbewu/Code/MUSA/MUSA5090/Spring2026/s26-team7-cama/tasks/data_pipeline/workflow.yaml)
-- Add a step to `assessments_branch` to invoke the `run-sql` cloud function, parsing `derived/tax_year_assessment_bins.sql`.
-
-### README
-#### [MODIFY] [tasks/README.md](file:///home/mjumbewu/Code/MUSA/MUSA5090/Spring2026/s26-team7-cama/tasks/README.md)
-- Provide information on the new derived SQL file.
-
-## Verification
-- We can trigger the `run_sql` cloud function via local curl to verify the sql executes without errors.
-- Test the new step in the workflow.
-```
+> # Implementation Plan: Pre-aggregate Assessment Data into Bins
+>
+> ## Goal Description
+> Create a SQL query to pre-aggregate property assessment data into log-scale bins by tax year. This will create a derived table `derived.tax_year_assessment_bins` that the UI can query efficiently without processing the full dataset. The query will be triggered by the existing `run_sql` Cloud Function and orchestrated by the Cloud Workflow.
+>
+> ## Proposed Changes
+>
+> ### SQL Aggregation (Derived Data)
+> #### [NEW] `tasks/run_sql/sql/derived/tax_year_assessment_bins.sql`
+> - Add a new SQL file that creates or replaces the `derived.tax_year_assessment_bins` table.
+> - Calculate bins for the assessment values using `market_value` from `core.opa_assessments`.
+> - Use a logarithmic or linear binning approach (e.g. intervals of $50,000 for linear scaling or powers of 10/log rounding for log scale).
+>    Linear binning is easiest: `FLOOR(market_value / 50000) * 50000`.
+>
+> ### Data Pipeline Workflow
+> #### [MODIFY] [tasks/data_pipeline/workflow.yaml](file:///home/mjumbewu/Code/MUSA/MUSA5090/Spring2026/s26-team7-cama/tasks/data_pipeline/workflow.yaml)
+> - Add a step to `assessments_branch` to invoke the `run-sql` cloud function, parsing `derived/tax_year_assessment_bins.sql`.
+>
+> ### README
+> #### [MODIFY] [tasks/README.md](file:///home/mjumbewu/Code/MUSA/MUSA5090/Spring2026/s26-team7-cama/tasks/README.md)
+> - Provide information on the new derived SQL file.
+>
+> ## Verification
+> - We can trigger the `run_sql` cloud function via local curl to verify the sql executes without errors.
+> - Test the new step in the workflow.
 
 ## Verification and modifications
 
