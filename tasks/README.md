@@ -13,6 +13,8 @@ run_sql/
       opa_assessments.sql
       opa_properties.sql
       pwd_parcels.sql
+    derived/
+      tax_year_assessment_bins.sql
   index.mjs
   package.json
 
