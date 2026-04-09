@@ -1,4 +1,4 @@
-CREATE OR REPLACE TABLE FUNCTION `{{ project_id }}.derived.tax_year_assessment_bins`(
+CREATE OR REPLACE TABLE FUNCTION `{{ project_id }}.derived.tax_year_assessment_bins` (
     tax_years ARRAY<INT64>,
     envelope GEOGRAPHY
 ) AS (
