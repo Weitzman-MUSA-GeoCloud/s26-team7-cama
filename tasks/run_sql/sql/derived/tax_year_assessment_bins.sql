@@ -2,11 +2,18 @@ CREATE OR REPLACE TABLE FUNCTION `{{ project_id }}.derived.tax_year_assessment_b
     tax_years ARRAY<INT64>,
     envelope GEOGRAPHY
 ) AS (
-    WITH config AS (
-        -- Defines the width of the bin on a log10 scale
-        SELECT 0.1 AS log_bin_width
+    WITH
+
+    config AS (
+        SELECT
+            -- Defines the width of the bins on a log10 scale
+            0.1 AS log_bin_width,
+
+            -- If no tax years are provided, use all distinct tax years from the assessments table
+            COALESCE(tax_years, (SELECT ARRAY_AGG(DISTINCT YEAR) FROM `{{ project_id }}.core.opa_assessments`)) AS tax_years
     ),
 
+    -- Filter to only include properties that intersect with the envelope, if provided
     properties AS (
         SELECT property_id
         FROM `{{ project_id }}.core.opa_properties`
@@ -24,12 +31,8 @@ CREATE OR REPLACE TABLE FUNCTION `{{ project_id }}.derived.tax_year_assessment_b
     INNER JOIN properties USING (property_id)
     CROSS JOIN config
     WHERE
-        assessment.market_value > 0
-        AND (
-            tax_years IS NULL
-            OR ARRAY_LENGTH(tax_years) = 0
-            OR assessment.year IN UNNEST(tax_years)
-        )
+        assessment.market_value > 0  -- Log of 0 is undefined
+        AND assessment.year IN UNNEST(config.tax_years)
     GROUP BY
         tax_year,
         lower_bound_exp,
