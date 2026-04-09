@@ -41,13 +41,13 @@
 * **I then read through all of the code that Gemini generated!** I'm not kidding and I'm not just saying this because I want you to do it too. I always review the code that AI generates for me because it's often subtly wrong. To organize my review, I followed the path of the pipeline workflow, starting with the extract function.
 
   - I reviewed the extract function:
-    - When calling `createWriteStream`, Gemini originally used an option called `resumable` and set it to `false`. I had no idea what that option was for, so I had to look it up. Turns out having `resumable: false` is useful for reducing network overhead while uploading small files (under 10MB). But the files we're uploading aren't small, so I removed it (the default is `resumable: true`).
+    - When calling `createWriteStream`, Gemini originally used an option called [`resumable` and set it to `false`](https://github.com/Weitzman-MUSA-GeoCloud/s26-team7-cama/blob/aea13203bfe9a0b5210666a65ee7b6e6bcf4961c/tasks/extract_data/index.mjs#L30). I had no idea what that option was for, and even though Gemini included an in-line comment I didn't have familiarity with it, so I had to look it up. Turns out having `resumable: false` is useful for reducing network overhead while uploading small files (under 10MB). But the files we're uploading aren't small (which Gemini didn't necessarily know, I guess), so I removed it (the default is `resumable: true`).
 
   - Next I reviewed the prepare function:
     - I re-arranged the stream transformers to be more readable. Node.js has the concept of a `pipeline` that can be used to chain together functions that read, modify, or write streams of data. I wanted the actual call to `pipeline` to be simple, so I defined the stream transformers as separate variables.
     - I found a bug in Gemini's code: Gemini originally used an extra backslash for the newline character in the `makeJsonl` function. I wasn't sure whether it was a bug or not, so I asked Gemini about it.
 
-      > **Me:** In tasks/extract_data/index.mjs, should the newline appended to the data passed to the `callback` have an escaped backslash (line 65)? Why is the backslash escaped?
+      > **Me:** In tasks/extract_data/index.mjs, should the newline appended to the data passed to the `callback` have an [escaped backslash (line 57)](https://github.com/Weitzman-MUSA-GeoCloud/s26-team7-cama/blob/aea13203bfe9a0b5210666a65ee7b6e6bcf4961c/tasks/extract_data/index.mjs#L57)? Why is the backslash escaped?
 
       > **Gemini:** Good catch! It absolutely should **not** be escaped.
       >
