@@ -4,7 +4,7 @@ CREATE OR REPLACE TABLE FUNCTION `{{ project_id }}.derived.tax_year_assessment_b
 ) AS (
     WITH config AS (
         -- Defines the width of the bin on a log10 scale
-        SELECT 0.15 AS log_bin_width
+        SELECT 0.1 AS log_bin_width
     ),
 
     properties AS (
