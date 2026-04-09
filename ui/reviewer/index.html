@@ -1,0 +1,33 @@
+<!doctype html>
+
+<html>
+    <head>
+        <title>Philadelphia Property Assessment Review Tool</title>
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="../assets/css/base.css" />
+        <link rel="stylesheet" href="../assets/css/reviewer.css" />
+        <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.22.0/dist/maplibre-gl.css" />
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "maplibre-gl": "https://unpkg.com/maplibre-gl@5.22.0/dist/maplibre-gl.js"
+                }
+            }
+        </script>
+        <script src="../assets/js/reviewer-map.js" type="module" defer></script>
+    </head>
+
+    <body>
+        <header>
+            <h1>Philadelphia Property Assessment Review Tool</h1>
+        </header>
+
+        <main id="map-container">
+            <div id="map" data-tile-url="https://vector.openstreetmap.org/shortbread_v1/tilejson.json"></div>
+        </main>
+    </body>
+</html>
