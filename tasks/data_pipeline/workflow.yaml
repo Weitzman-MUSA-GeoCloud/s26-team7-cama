@@ -107,13 +107,36 @@ main:
                         auth:
                           type: OIDC
     - transform_data:
+        parallel:
+          branches:
+            - tax_year_bins_branch:
+                steps:
+                  - derived_tax_year_bins:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: derived/tax_year_assessment_bins.sql
+                        auth:
+                          type: OIDC
+            - residential_properties_branch:
+                steps:
+                  - derived_opa_residential_properties:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: derived/opa_residential_properties.sql
+                        auth:
+                          type: OIDC
+    - export_geojson_step:
         steps:
-          - derived_tax_year_bins:
+          - export_geojson:
               call: http.post
               args:
-                timeout: 1800
-                url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
-                body:
-                  sql: derived/tax_year_assessment_bins.sql
+                timeout: 3600
+                url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/export-geojson"}
                 auth:
                   type: OIDC
