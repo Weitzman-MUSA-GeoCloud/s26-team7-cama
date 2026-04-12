@@ -99,11 +99,11 @@ functions.http('export_geojson', async (req, res) => {
         a.latest_market_value_year,
         a.market_value_1_yr_ago,
         a.market_value_2_yrs_ago,
-        ca.current_assessed_value AS predicted_market_value
+        -- ca.current_assessed_value AS predicted_market_value
       FROM \`${PROJECT_ID}.core.pwd_parcels\` p
       JOIN \`${PROJECT_ID}.derived.opa_residential_properties\` op ON p.property_id = op.property_id
       LEFT JOIN pivoted_assessments a ON p.property_id = a.property_id
-      LEFT JOIN \`${PROJECT_ID}.derived.current_assessments\` ca ON p.property_id = ca.property_id
+      -- LEFT JOIN \`${PROJECT_ID}.derived.current_assessments\` ca ON p.property_id = ca.property_id
       WHERE p.geometry IS NOT NULL
     `;
 
