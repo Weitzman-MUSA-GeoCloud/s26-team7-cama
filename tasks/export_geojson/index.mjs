@@ -27,7 +27,7 @@ async function* generateGeoJsonChunks(bqStream) {
     try {
       geom = JSON.parse(row.geometry);
     } catch (e) {
-      console.warn(`Failed to parse geometry for property ${row.property_id}`);
+      console.warn(`Failed to parse geometry for property ${row.property_id}: ${e}`);
       continue;
     }
 
@@ -37,7 +37,7 @@ async function* generateGeoJsonChunks(bqStream) {
     const featureString = (isFirst ? '' : ',\n') + JSON.stringify({
       type: 'Feature',
       geometry: geom,
-      properties
+      properties,
     });
 
     buffer += featureString;
