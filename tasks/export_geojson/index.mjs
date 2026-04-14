@@ -64,9 +64,7 @@ functions.http('export_geojson', async (req, res) => {
 
     const writeStream = file.createWriteStream({
       contentType: 'application/geo+json',
-      // We explicitly DO NOT gzip in this step because ogr2ogr will stream this out.
-      // If we gzip, gcloud cp command correctly decompresses during download, but we
-      // leave it uncompressed here to ensure direct GeoJSON streaming is as specified.
+      gzip: true,
     });
 
     const query = `
