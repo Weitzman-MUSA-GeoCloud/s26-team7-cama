@@ -79,13 +79,10 @@ functions.http('export_geojson', async (req, res) => {
       pivoted_assessments AS (
         SELECT
           property_id,
-          MAX(CASE WHEN rn = 1 THEN market_value END) AS latest_market_value,
-          MAX(CASE WHEN rn = 1 THEN year END) AS latest_market_value_year,
-          MAX(CASE WHEN rn = 2 THEN market_value END) AS market_value_1_yr_ago,
-          MAX(CASE WHEN rn = 3 THEN market_value END) AS market_value_2_yrs_ago
+          market_value AS tax_year_assessed_value,
+          year AS tax_year,
         FROM recent_assessments
-        WHERE rn <= 3
-        GROUP BY property_id
+        WHERE rn = 1
       )
       SELECT
         ST_ASGEOJSON(p.geometry) AS geometry,
@@ -93,11 +90,9 @@ functions.http('export_geojson', async (req, res) => {
         op.category_code_description,
         op.year_built,
         op.zoning,
-        a.latest_market_value,
-        a.latest_market_value_year,
-        a.market_value_1_yr_ago,
-        a.market_value_2_yrs_ago,
-        -- ca.current_assessed_value AS predicted_market_value
+        a.tax_year_assessed_value,
+        a.tax_year,
+        -- ca.current_assessed_value
       FROM \`${PROJECT_ID}.core.pwd_parcels\` p
       JOIN \`${PROJECT_ID}.derived.opa_residential_properties\` op ON p.property_id = op.property_id
       LEFT JOIN pivoted_assessments a ON p.property_id = a.property_id
