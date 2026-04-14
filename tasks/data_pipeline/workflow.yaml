@@ -131,6 +131,15 @@ main:
                           sql: derived/opa_residential_properties.sql
                         auth:
                           type: OIDC
+                  - derived_property_tile_info:
+                      call: http.post
+                      args:
+                        timeout: 1800
+                        url: ${"https://" + sys.get_env("GOOGLE_CLOUD_LOCATION") + "-" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + ".cloudfunctions.net/run-sql"}
+                        body:
+                          sql: derived/property_tile_info.sql
+                        auth:
+                          type: OIDC
     - export_geojson_step:
         steps:
           - export_geojson:

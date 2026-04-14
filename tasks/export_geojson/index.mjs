@@ -68,36 +68,8 @@ functions.http('export_geojson', async (req, res) => {
     });
 
     const query = `
-      WITH recent_assessments AS (
-        SELECT
-          property_id,
-          year,
-          market_value,
-          ROW_NUMBER() OVER (PARTITION BY property_id ORDER BY year DESC) as rn
-        FROM \`${PROJECT_ID}.core.opa_assessments\`
-      ),
-      pivoted_assessments AS (
-        SELECT
-          property_id,
-          market_value AS tax_year_assessed_value,
-          year AS tax_year,
-        FROM recent_assessments
-        WHERE rn = 1
-      )
-      SELECT
-        ST_ASGEOJSON(p.geometry) AS geometry,
-        p.property_id,
-        op.category_code_description,
-        op.year_built,
-        op.zoning,
-        a.tax_year_assessed_value,
-        a.tax_year,
-        -- ca.current_assessed_value
-      FROM \`${PROJECT_ID}.core.pwd_parcels\` p
-      JOIN \`${PROJECT_ID}.derived.opa_residential_properties\` op ON p.property_id = op.property_id
-      LEFT JOIN pivoted_assessments a ON p.property_id = a.property_id
-      -- LEFT JOIN \`${PROJECT_ID}.derived.current_assessments\` ca ON p.property_id = ca.property_id
-      WHERE p.geometry IS NOT NULL
+      SELECT *
+      FROM \`${PROJECT_ID}.derived.property_tile_info\`
     `;
 
     console.log('Querying BigQuery...');
