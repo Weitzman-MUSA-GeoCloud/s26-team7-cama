@@ -13,9 +13,9 @@ CREATE OR REPLACE VIEW `{{ project_id }}.derived.property_tile_info` AS (
     property.category_code_description,
     property.year_built,
     property.zoning,
-    assessment.market_value AS tax_year_assessed_value,
+    CAST(assessment.market_value AS FLOAT64) AS tax_year_assessed_value,
     assessment.year AS tax_year,
-    -- prediction.current_assessed_value
+    -- CAST(prediction.current_assessed_value AS FLOAT64) AS current_assessed_value
   FROM `{{ project_id }}.core.pwd_parcels` parcel
   JOIN `{{ project_id }}.derived.opa_residential_properties` property ON parcel.property_id = property.property_id
   LEFT JOIN recent_assessments assessment ON parcel.property_id = assessment.property_id
