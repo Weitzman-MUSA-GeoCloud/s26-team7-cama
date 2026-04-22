@@ -2,6 +2,21 @@ CREATE OR REPLACE TABLE `{{ project_id }}.core.opa_properties`
 AS (
     SELECT
         parcel_number AS property_id,
+
+        -- We can use the category code information from the metadata catalog entry linked from
+        -- https://opendataphilly.org/datasets/philadelphia-properties-and-assessment-history/
+        CASE
+            WHEN category_code = '1' THEN 'Residential'
+            WHEN category_code = '2' THEN 'Hotels and Apartments'
+            WHEN category_code = '3' THEN 'Store with Dwelling'
+            WHEN category_code = '4' THEN 'Commercial'
+            WHEN category_code = '5' THEN 'Industrial'
+            WHEN category_code = '6' THEN 'Vacant Land'
+            WHEN category_code = '' THEN NULL
+            -- Preserve unexpected values for debugging
+            ELSE CONCAT('Unknown Category Code "', category_code, '"')
+        END AS category,
+
         * REPLACE (
             CASE WHEN the_geom = '' THEN NULL ELSE ST_GEOGFROMWKB(the_geom) END AS the_geom,
 

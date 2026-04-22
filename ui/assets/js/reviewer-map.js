@@ -35,6 +35,29 @@ async function initMap() {
   map.addControl(new maplibregl.AttributionControl({
     customAttribution: `${fixthemapLink} | ${mailToLink}`,
   }));
+
+  map.on('load', () => {
+    map.addSource('property_tiles', {
+      type: 'vector',
+      tiles: [
+        'http://localhost:8000/assets/ogr2ogr_mvt_64k/{z}/{x}/{y}.pbf',
+      ],
+      minzoom: 12,
+      maxzoom: 18,
+    });
+
+    map.addLayer({
+      id: 'property_tile_info',
+      type: 'fill',
+      source: 'property_tiles',
+      'source-layer': 'property_tile_info',
+      paint: {
+        'fill-color': '#0080ff',
+        'fill-opacity': 0.5,
+        'fill-outline-color': '#000000',
+      },
+    });
+  });
 }
 
 initMap();
