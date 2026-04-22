@@ -9,8 +9,9 @@ CREATE OR REPLACE TABLE FUNCTION `{{ project_id }}.derived.tax_year_assessment_b
             -- Defines the width of the bins on a log10 scale
             0.1 AS log_bin_width,
 
-            -- If no tax years are provided, use all distinct tax years from the assessments table
-            COALESCE(tax_years, (SELECT ARRAY_AGG(DISTINCT YEAR) FROM `{{ project_id }}.core.opa_assessments`)) AS tax_years
+            -- If no tax years are provided, use all distinct tax years from the assessments table;
+            -- Supress the lint error that expects tax_years to be in the FROM clause
+            COALESCE(tax_years, (SELECT ARRAY_AGG(DISTINCT YEAR) FROM `{{ project_id }}.core.opa_assessments`)) AS tax_years -- noqa: RF01
     ),
 
     -- Filter to only include properties that intersect with the envelope, if provided
@@ -34,10 +35,11 @@ CREATE OR REPLACE TABLE FUNCTION `{{ project_id }}.derived.tax_year_assessment_b
         assessment.market_value > 0  -- Log of 0 is undefined
         AND assessment.year IN UNNEST(config.tax_years)
     GROUP BY
-        tax_year,
-        lower_bound_exp,
-        upper_bound_exp
+        -- Supress the lint errors that expects tax_year, lower_bound_exp, and upper_bound_exp to be in the FROM clause
+        tax_year, -- noqa: RF01
+        lower_bound_exp, -- noqa: RF01
+        upper_bound_exp -- noqa: RF01
     ORDER BY
-        tax_year DESC,
-        lower_bound_exp ASC
+        tax_year DESC, -- noqa: RF01
+        lower_bound_exp ASC -- noqa: RF01
 );
